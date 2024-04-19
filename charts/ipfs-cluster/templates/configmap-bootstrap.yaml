@@ -5,67 +5,65 @@ metadata:
 data:
   entrypoint.sh: |
     #!/bin/sh
-    #set -e
+
+    set -e
     set -x
+
     user=ipfs
+    ipfsClusterRepo=/data/ipfs-cluster
 
-    # This is a custom entrypoint for k8s designed to connect to the bootstrap
-    # node running in the cluster. It has been set up using a configmap to
-    # allow changes on the fly.
+    cat /proc/sys/kernel/hostname
 
-
-    if [ ! -f /data/ipfs-cluster/service.json ]; then
+    if [ ! -f ${ipfsClusterRepo}/service.json ]; then
       ipfs-cluster-service init
     fi
 
-    PEER_HOSTNAME=`cat /proc/sys/kernel/hostname`
+    #sed -i s~/ip4/127.0.0.1/tcp/9097~/ip4/0.0.0.0/tcp/9097~ ${ipfsClusterRepo}/service.json
+    #sed -i s~/ip4/127.0.0.1/tcp/9095~/ip4/0.0.0.0/tcp/9095~ ${ipfsClusterRepo}/service.json
+    #sed -i s~/ip4/127.0.0.1/tcp/9094~/ip4/0.0.0.0/tcp/9094~ ${ipfsClusterRepo}/service.json
 
-    grep -q ".*ipfs-cluster-0.*" /proc/sys/kernel/hostname
-    if [ $? -eq 0 ]; then
-      CLUSTER_ID=${BOOTSTRAP_PEER_ID} \
-      CLUSTER_PRIVATEKEY=${BOOTSTRAP_PEER_PRIV_KEY} \
-      exec ipfs-cluster-service daemon --upgrade
+    chown -R ${user} ${ipfsClusterRepo}
+
+    if [ `grep "{{ include "ipfs-cluster.serviceName" . }}-0" /proc/sys/kernel/hostname | wc -l` -gt 0 ]; then
+      echo "I am the bootstrap node"
+      export CLUSTER_ID=${BOOTSTRAP_PEER_ID}
+      export CLUSTER_PRIVATEKEY=${BOOTSTRAP_PEER_PRIV_KEY}
+      exec /usr/local/bin/entrypoint.sh daemon
     else
-      BOOTSTRAP_ADDR=/dns4/${SVC_NAME}-0.${SVC_NAME}/tcp/9096/ipfs/${BOOTSTRAP_PEER_ID}
-
-      if [ -z $BOOTSTRAP_ADDR ]; then
-        exit 1
-      fi
-      # Only ipfs user can get here
-      exec ipfs-cluster-service daemon --upgrade --bootstrap $BOOTSTRAP_ADDR --leave
+      echo "I am not the bootstrap node"
+      BOOTSTRAP_ADDR="{{ include "ipfs-cluster.serviceName" . }}-0.{{ include "ipfs-cluster.serviceName" . }}.{{ include "ipfs-cluster.statefulsetName" . }}.svc.cluster.local"
+      echo "BOOTSTRAP_ADDR: ${BOOTSTRAP_ADDR}"
+      nslookup ${BOOTSTRAP_ADDR}
+      exec /usr/local/bin/entrypoint.sh daemon --bootstrap "/dns4/${BOOTSTRAP_ADDR}/tcp/9096/ipfs/${BOOTSTRAP_PEER_ID}"
     fi
 
   configure-ipfs.sh: |
     #!/bin/sh
+
     set -e
     set -x
+
     user=ipfs
-    repo=/data/ipfs
-    # This is a custom entrypoint for k8s designed to run ipfs nodes in an appropriate
-    # setup for production scenarios.
+    ipfsRepo=/data/ipfs
+    ipfsClusterRepo=/data/ipfs-cluster
 
-    mkdir -p /data/ipfs && chown -R ipfs /data/ipfs
-
-    if [ `id -u` -eq 0 ]; then
-      echo "Changing user to $user"
-      # ensure folder is writable
-      su-exec "$user" test -w "$repo" || chown -R -- "$user" "$repo"
-      # restart script with new privileges
-      exec su-exec "$user" sh "$0" "$@"
-    fi
-
-    if [ -f /data/ipfs/config ]; then
-      if [ -f /data/ipfs/repo.lock ]; then
-        rm /data/ipfs/repo.lock
+    if [ -f ${ipfsRepo}/config ]; then
+      if [ -f ${ipfsRepo}/repo.lock ]; then
+        rm ${ipfsRepo}/repo.lock
       fi
-      exit 0
+    else
+      ipfs init
     fi
 
-    ipfs init --profile=badgerds,server
+    #ipfs config --json Swarm.ConnMgr.HighWater 2000
+    #ipfs config --json Datastore.BloomFilterSize 1048576
+
     ipfs config Addresses.API /ip4/0.0.0.0/tcp/5001
     ipfs config Addresses.Gateway /ip4/0.0.0.0/tcp/8080
-    ipfs config --json Swarm.ConnMgr.HighWater 2000
-    ipfs config --json Datastore.BloomFilterSize 1048576
-    ipfs config Datastore.StorageMax 100GB
-    ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["*"]'
-    ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST"]'
+    ipfs config Datastore.StorageMax {{ .Values.persistence.ipfsStorage.size }}GB
+
+    #ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["*"]'
+    #ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["GET", "PUT", "POST"]'
+
+    chown -R ${user} ${ipfsRepo}
+    chown -R ${user} ${ipfsClusterRepo}

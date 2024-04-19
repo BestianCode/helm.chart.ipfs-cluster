@@ -1,35 +1,83 @@
 ipfsImage:
-  repo: ipfs/go-ipfs
-  tag: v0.10.0
+  repo: ipfs/kubo
+  tag: release
 
 ipfsClusterImage:
   repo: ipfs/ipfs-cluster
-  tag: v0.14.1
+  tag: latest
 
-#### secretes examples #####
-#https://cluster.ipfs.io/documentation/guides/k8s/
+clusterMoitorPingInterval: 5s
 
-#od  -vN 32 -An -tx1 /dev/urandom | tr -d ' \n'
-clusterSecret: 1ec8276f98cf47c16acfd9bf39fca38f8e3cfcbe229530a7ba9f08ef9757c439
+# Look at https://ipfscluster.io/documentation/guides/k8s/ for more information
+# od  -vN 32 -An -tx1 /dev/urandom | tr -d ' \n'
+clusterSecret: 56d0baf061b6cef8c18af12cf58c5f3d8b920071cb2e9b6206704d4628ecce9a
 
-#go get github.com/whyrusleeping/ipfs-key
-#ipfs-key --type Ed25519 | base64
-bootstrapPeerPrivateKey: CAESQKyMCUbsfSRq8NBOFQOxv9uvgXm1zvSHyThj3AQV6UBHvTJ+TbTrk1Z6639aE6FOSMGbAG+besQOtk5SPsP2Gxo=
-bootstrapPeerId: 12D3KooWNYut1XL31b4KUnCZmC8Mu7WqGn6QdwnptGpS5tnhSttR
+# Look at https://github.com/whyrusleeping/ipfs-key for more information
+# ipfs-key --type ed25519 | base64
+bootstrapPeerPrivateKey: CAESQLERJE/+/o51rqpjKgcS0YqOttLBTwi68/7rovYv0Y5cTvXYdZqy1uSvFy3EOYHvR0kJXWxuvyzVMZsVpqHbp1Q=
+bootstrapPeerId: 12D3KooWF8bPwLwprsJsgfgAFKaL4mYMVtTZrMRHBdxrPwknh6Af
 
-clusterRestApiId: 12D3KooWMfXzp2nmNrb7DM4PETYZbaKALnrnwiqnhvrUC66KyYrb
-clusterRestApiPrivateKey: CAESQEmvGJbMboEibpcWCTKOtDYU2eEyyHLN9gDdJli6Z2tksAkhFWNx0Fk3vOlwLIitE2rfGtIj61Ovla/mHC42Plg=
-clusterRestApiBasicAuth: "w3f:password"
+#clusterRestApiId: 12D3KooWMfXzp2nmNrb7DM4PETYZbaKALnrnwiqnhvrUC66KyYrb
+#clusterRestApiPrivateKey: CAESQEmvGJbMboEibpcWCTKOtDYU2eEyyHLN9gDdJli6Z2tksAkhFWNx0Fk3vOlwLIitE2rfGtIj61Ovla/mHC42Plg=
+#clusterRestApiBasicAuth: "admin:UbiquitiNotACisco"
 
-clusterCRDTtrustedPeers: "12D3KooWNYut1XL31b4KUnCZmC8Mu7WqGn6QdwnptGpS5tnhSttR,12D3KooWNYut1XL31b4KUnCZmC8Mu7WqGn6QdwnptGpS5tnhSttR"
-##################
+clusterCRDTtrustedPeers: "*"
+#clusterCRDTtrustedPeers: "12D3KooWNYut1XL31b4KUnCZmC8Mu7WqGn6QdwnptGpS5tnhSttR,12D3KooWNYut1XL31b4KUnCZmC8Mu7WqGn6QdwnptGpS5tnhSttR"
 
-replicaCount: 1
+replicaCount: 3
 
-domain: ipfs.w3f.community
-httpDomain: ipfs-gateway.w3f.community
+ingress:
+  className: "nginx"
+  gateway:
+    enabled: false
+    host: ipfs-gateway.test.local
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/use-regex: "true"
+      nginx.ingress.kubernetes.io/rewrite-target: /$1
+      #nginx.ingress.kubernetes.io/auth-type: basic
+      #nginx.ingress.kubernetes.io/auth-secret: basic-auth
+      #nginx.ingress.kubernetes.io/auth-realm: "Restricted area"
+      nginx.ingress.kubernetes.io/ssl-redirect: "false"
+      nginx.ingress.kubernetes.io/proxy-connect-timeout: "600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+  clusterApi:
+    enabled: false
+    host: ipfs-cluster-api.test.local
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/proxy-body-size: 1024m
+      nginx.ingress.kubernetes.io/use-regex: "true"
+      nginx.ingress.kubernetes.io/rewrite-target: /$1
+      #nginx.ingress.kubernetes.io/auth-type: basic
+      #nginx.ingress.kubernetes.io/auth-secret: basic-auth
+      #nginx.ingress.kubernetes.io/auth-realm: "Restricted area"
+      nginx.ingress.kubernetes.io/ssl-redirect: "false"
+      nginx.ingress.kubernetes.io/proxy-connect-timeout: "600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+      nginx.ingress.kubernetes.io/server-snippets: |
+        location / {
+          proxy_set_header        Host                $host;
+          proxy_set_header        X-Forwarded-Proto   'https';
+          proxy_set_header        X-Forwarded-Port    '443';
+          proxy_set_header        X-Forwarded-For     $proxy_add_x_forwarded_for;
+          proxy_set_header        X-Forwarded-Ssl     on;
+          proxy_set_header        X-Real-IP           $remote_addr;
+          # # # proxy_http_version    1.1;
+          # # # proxy_set_header      Upgrade      $http_upgrade;
+          # # # proxy_set_header      Connection   'upgrade';
+          # # # proxy_cache_bypass                 $http_upgrade;
+          # # # proxy_buffering         off;
+        }
 
 persistence:
   enabled: true
-  clusterStorage: 5Gi
-  ipfsStorage: 200Gi
+  storageClass: "standard"
+  accessModes:
+    - ReadWriteOnce
+  clusterStorage:
+    size: 8
+  ipfsStorage:
+    size: 64

@@ -1,10 +1,21 @@
-[![CircleCI](https://circleci.com/gh/w3f/ipfs-cluster-chart.svg?style=svg)](https://circleci.com/gh/w3f/ipfs-cluster-chart)
+# IPFS Cluster Helm Chart
 
-# ipfs-cluster-chart
-Helm Chart for: https://cluster.ipfs.io/documentation/guides/k8s/
+## Installation
 
-## NOTE
+- Set HelmChart values in `values.yaml` file
+- Install the chart:
 
-The chart is inspired from:  
-- https://github.com/ipfs/ipfs-cluster-website/blob/1258134676f5293422eb97b702ae56b207261e62/content/documentation/guides/k8s.md
-- https://cluster.ipfs.io/documentation/guides/k8s/
+```bash
+helm upgrade --install ipfs-cluster charts/ipfs-cluster/ --namespace ipfs-cluster --create-namespace --values <./values.yaml>
+```
+
+## Usefull links
+
+- IPFS Cluster / Running Cluster on Kubernetes (outdated): https://ipfscluster.io/documentation/guides/k8s/
+- IPFS Docs: https://docs.ipfs.tech/install/
+- IPFS Cluster repo: https://github.com/ipfs-cluster/ipfs-cluster
+- IPFS Kubo repo: https://github.com/ipfs/kubo
+
+---
+
+- Forked from: https://github.com/w3f/ipfs-cluster-chart

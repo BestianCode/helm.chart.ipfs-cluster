@@ -28,7 +28,7 @@
 {{ .Release.Name }}-http
 {{- end }}
 
-{{/* Returns the service name local */}}
-{{- define "ipfs-cluster.serviceNameLocal" -}}
-{{ .Release.Name }}-local
-{{- end }}
+//{{/* Returns the service name local */}}
+//{{- define "ipfs-cluster.serviceNameLocal" -}}
+//{{ .Release.Name }}-local
+//{{- end }}
