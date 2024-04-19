@@ -10,49 +10,64 @@ clusterMoitorPingInterval: 5s
 
 # Look at https://ipfscluster.io/documentation/guides/k8s/ for more information
 # od  -vN 32 -An -tx1 /dev/urandom | tr -d ' \n'
+#
+# Don't use the sample data like keys, passwords in this file for your production environment !!!
+#
 clusterSecret: 56d0baf061b6cef8c18af12cf58c5f3d8b920071cb2e9b6206704d4628ecce9a
 
 # Look at https://github.com/whyrusleeping/ipfs-key for more information
 # ipfs-key --type ed25519 | base64
+#
+# Don't use the sample data like keys, passwords in this file for your production environment !!!
+#
 bootstrapPeerPrivateKey: CAESQLERJE/+/o51rqpjKgcS0YqOttLBTwi68/7rovYv0Y5cTvXYdZqy1uSvFy3EOYHvR0kJXWxuvyzVMZsVpqHbp1Q=
 bootstrapPeerId: 12D3KooWF8bPwLwprsJsgfgAFKaL4mYMVtTZrMRHBdxrPwknh6Af
 
-#clusterRestApiId: 12D3KooWMfXzp2nmNrb7DM4PETYZbaKALnrnwiqnhvrUC66KyYrb
-#clusterRestApiPrivateKey: CAESQEmvGJbMboEibpcWCTKOtDYU2eEyyHLN9gDdJli6Z2tksAkhFWNx0Fk3vOlwLIitE2rfGtIj61Ovla/mHC42Plg=
-#clusterRestApiBasicAuth: "admin:UbiquitiNotACisco"
-
 clusterCRDTtrustedPeers: "*"
-#clusterCRDTtrustedPeers: "12D3KooWNYut1XL31b4KUnCZmC8Mu7WqGn6QdwnptGpS5tnhSttR,12D3KooWNYut1XL31b4KUnCZmC8Mu7WqGn6QdwnptGpS5tnhSttR"
 
 replicaCount: 3
 
 ingress:
   className: "nginx"
   gateway:
-    enabled: true
+    enabled: false
+    basicAuth:
+      enabled: true # if set false, remove annotatons for ingress too
+      #
+      # Don't use the sample data like keys, passwords in this file for your production environment !!!
+      #
+      htpasswd: "YWRtaW46JGFwcjEkSUQ1N3VaT0kkMlNZV2ZkUTYyL3FQYjluSnNlbkplMAo=" # admin / BtrfG6er$r !! Change this password !!
+      secretName: basic-auth-gateway
     host: ipfs-gateway.test.local
     annotations:
       kubernetes.io/ingress.class: nginx
       nginx.ingress.kubernetes.io/use-regex: "true"
       nginx.ingress.kubernetes.io/rewrite-target: /$1
-      #nginx.ingress.kubernetes.io/auth-type: basic
-      #nginx.ingress.kubernetes.io/auth-secret: basic-auth
-      #nginx.ingress.kubernetes.io/auth-realm: "Restricted area"
+      nginx.ingress.kubernetes.io/auth-type: basic
+      nginx.ingress.kubernetes.io/auth-secret: basic-auth-gateway
+      nginx.ingress.kubernetes.io/auth-realm: "Restricted area"
       nginx.ingress.kubernetes.io/ssl-redirect: "false"
       nginx.ingress.kubernetes.io/proxy-connect-timeout: "600"
       nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
       nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
   clusterApi:
-    enabled: true
+    enabled: false
+    basicAuth:
+      enabled: true # if set false, remove annotatons for ingress too
+      #
+      # Don't use the sample data like keys, passwords in this file for your production environment !!!
+      #
+      htpasswd: "YWRtaW46JGFwcjEkSUQ1N3VaT0kkMlNZV2ZkUTYyL3FQYjluSnNlbkplMAo=" # admin / BtrfG6er$r !! Change this password !!
+      secretName: basic-auth-cluster-api
     host: ipfs-cluster-api.test.local
     annotations:
       kubernetes.io/ingress.class: nginx
       nginx.ingress.kubernetes.io/proxy-body-size: 1024m
       nginx.ingress.kubernetes.io/use-regex: "true"
       nginx.ingress.kubernetes.io/rewrite-target: /$1
-      #nginx.ingress.kubernetes.io/auth-type: basic
-      #nginx.ingress.kubernetes.io/auth-secret: basic-auth
-      #nginx.ingress.kubernetes.io/auth-realm: "Restricted area"
+      nginx.ingress.kubernetes.io/auth-type: basic
+      nginx.ingress.kubernetes.io/auth-secret: basic-auth-cluster-api
+      nginx.ingress.kubernetes.io/auth-realm: "Restricted area"
       nginx.ingress.kubernetes.io/ssl-redirect: "false"
       nginx.ingress.kubernetes.io/proxy-connect-timeout: "600"
       nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
