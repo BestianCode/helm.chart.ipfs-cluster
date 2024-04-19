@@ -26,7 +26,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "ipfs-cluster.serviceNameHttp" . }}
+  name: {{ include "ipfs-cluster.serviceName" . }}-http
   labels:
     node: {{ .Release.Name }}
 spec:
@@ -45,7 +45,7 @@ spec:
 #apiVersion: v1
 #kind: Service
 #metadata:
-#  name: {{ include "ipfs-cluster.serviceNameLocal" . }}
+#  name: {{ include "ipfs-cluster.serviceName" . }}-local
 #  labels:
 #    node: {{ .Release.Name }}
 #spec:

@@ -29,7 +29,7 @@ replicaCount: 3
 ingress:
   className: "nginx"
   gateway:
-    enabled: false
+    enabled: true
     host: ipfs-gateway.test.local
     annotations:
       kubernetes.io/ingress.class: nginx
@@ -43,7 +43,7 @@ ingress:
       nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
       nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
   clusterApi:
-    enabled: false
+    enabled: true
     host: ipfs-cluster-api.test.local
     annotations:
       kubernetes.io/ingress.class: nginx
