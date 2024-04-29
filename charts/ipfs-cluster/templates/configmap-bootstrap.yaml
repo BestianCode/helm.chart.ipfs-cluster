@@ -62,8 +62,8 @@ data:
     ipfs config Addresses.Gateway /ip4/0.0.0.0/tcp/8080
     ipfs config Datastore.StorageMax {{ .Values.persistence.ipfsStorage.size }}GB
 
-    #ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["*"]'
-    #ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["GET", "PUT", "POST"]'
+    ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["*"]'
+    ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["GET", "PUT", "POST"]'
 
     chown -R ${user} ${ipfsRepo}
     chown -R ${user} ${ipfsClusterRepo}

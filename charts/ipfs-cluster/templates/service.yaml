@@ -37,6 +37,10 @@ spec:
     targetPort: 8080
     port: 8080
     protocol: TCP
+  - name: api
+    targetPort: 5001
+    port: 5001
+    protocol: TCP
   - name: api-http
     targetPort: 9094
     port: 9094
