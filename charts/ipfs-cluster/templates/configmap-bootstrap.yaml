@@ -22,6 +22,8 @@ data:
     #sed -i s~/ip4/127.0.0.1/tcp/9095~/ip4/0.0.0.0/tcp/9095~ ${ipfsClusterRepo}/service.json
     #sed -i s~/ip4/127.0.0.1/tcp/9094~/ip4/0.0.0.0/tcp/9094~ ${ipfsClusterRepo}/service.json
 
+    #sed -i -e 's/"replication_factor_min": [0-9]\+/"replication_factor_min": 2/' ${ipfsClusterRepo}/service.json
+
     chown -R ${user} ${ipfsClusterRepo}
 
     if [ `grep "{{ include "ipfs-cluster.serviceName" . }}-0" /proc/sys/kernel/hostname | wc -l` -gt 0 ]; then
